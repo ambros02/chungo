@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "configuration/paths.h"
 #include "src/utilities/logger.h"
 
 struct loggerConfig {
@@ -66,8 +67,7 @@ static void addConfig(struct loggerConfig* config, enum LoggerConfigKey key, cha
 
 static struct loggerConfig readConfigInformation() {
     struct loggerConfig loggerConfig = {0};
-
-    FILE* configFile = fopen("./variables/logger.conf", "r");
+    FILE* configFile = fopen( BINARY_ROOT "/configuration/logger.conf", "r");
     if (configFile != NULL) {
         char configBuffer[512];
 
