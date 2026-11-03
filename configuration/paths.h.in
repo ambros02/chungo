@@ -1,0 +1,3 @@
+
+
+#define BINARY_ROOT "@CMAKE_BINARY_DIR@"

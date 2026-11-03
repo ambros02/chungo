@@ -3,16 +3,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "configuration/paths.h"
 #include "src/utilities/logger.h"
 
 struct loggerConfig {
     char filePath[512];
-    long long bufferSize;
+    enum LogLevel logLevel;
 };
 
 enum LoggerConfigKey {
     LOGGER_FILE_PATH,
-    LOGGER_BUFFER_SIZE,
+    LOG_LEVEL,
     UNKNOWN_OPTION
 };
 
@@ -23,7 +24,7 @@ struct ConfigEntry {
 
 static const struct ConfigEntry configEntries[] = {
     {LOGGER_FILE_PATH, "logFile"},
-    {LOGGER_BUFFER_SIZE, "logBufferSize"}
+    {LOG_LEVEL, "logLevel"}
 };
 
 static enum LoggerConfigKey getKeyFromName(const char* name) {
@@ -35,29 +36,24 @@ static enum LoggerConfigKey getKeyFromName(const char* name) {
     return UNKNOWN_OPTION;
 }
 
-static long long parseBufferSize(char* sizeString) {
-    char *endPointer;
-    long long strValue = strtol(sizeString, &endPointer, 10);
-
-    while (isspace(*endPointer)) endPointer++;
-
-    if (strcmp(endPointer, "KB") == 0) {
-        strValue *= 1024;
-    } else if (strcmp(endPointer, "MB") == 0) {
-        strValue *= 1024 * 1024;
-    } else if (strcmp(endPointer, "GB") == 0) {
-        strValue *= 1024 * 1024 * 1024;
+static enum LogLevel getLogLevelFromName(const char* name) {
+    for (int i = 0; i < sizeof(logMappings) / sizeof(struct LogLevelMap); i++) {
+        if (strcmp(logMappings[i].name, name) == 0) {
+            return logMappings[i].key;
+        }
     }
-    return strValue;
+    return ERROR;
 }
 
 static void addConfig(struct loggerConfig* config, enum LoggerConfigKey key, char* value) {
+    size_t len = strlen(value);
+    if (value[len-1] == '\n') value[len-1] = '\0';
     switch (key) {
         case LOGGER_FILE_PATH:
             strcpy(config->filePath, value);
             break;
-        case LOGGER_BUFFER_SIZE:
-            config->bufferSize = parseBufferSize(value);
+        case LOG_LEVEL:
+            config->logLevel = getLogLevelFromName(value);
             break;
         default:
             break;
@@ -66,8 +62,7 @@ static void addConfig(struct loggerConfig* config, enum LoggerConfigKey key, cha
 
 static struct loggerConfig readConfigInformation() {
     struct loggerConfig loggerConfig = {0};
-
-    FILE* configFile = fopen("./variables/logger.conf", "r");
+    FILE* configFile = fopen( BINARY_ROOT "/configuration/logger.conf", "r");
     if (configFile != NULL) {
         char configBuffer[512];
 
@@ -91,7 +86,7 @@ static struct loggerConfig readConfigInformation() {
 static void startup() {
     struct loggerConfig loggerConfig = readConfigInformation();
     printf("Logger config file: %s\n", loggerConfig.filePath);
-    printf("Logger buffersize: %lld\n", loggerConfig.bufferSize);
+    printf("Logger LogLevel: %d\n", loggerConfig.logLevel);
 }
 
 

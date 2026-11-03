@@ -1,6 +1,7 @@
 #ifndef CHUNGO_LOGGER_H
 #define CHUNGO_LOGGER_H
 
+
 enum LogLevel {
     DEBUG,
     INFO,
@@ -8,6 +9,22 @@ enum LogLevel {
     ERROR,
     FATAL,
 };
+
+struct LogLevelMap {
+    enum LogLevel key;
+    char* name;
+};
+
+static const struct LogLevelMap logMappings[] = {
+    {DEBUG, "DEBUG"},
+    {INFO, "INFO"},
+    {WARNING, "WARNING"},
+    {ERROR, "ERROR"},
+    {FATAL, "FATAL"}
+};
+
+
+
 
 
 
