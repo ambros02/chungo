@@ -1,31 +1,13 @@
-#include <ctype.h>
+#include "logger.h"
+
+#include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
+#include <time.h>
 #include "configuration/paths.h"
-#include "src/utilities/logger.h"
+#include <stdarg.h>
 
-struct loggerConfig {
-    char filePath[512];
-    enum LogLevel logLevel;
-};
-
-enum LoggerConfigKey {
-    LOGGER_FILE_PATH,
-    LOG_LEVEL,
-    UNKNOWN_OPTION
-};
-
-struct ConfigEntry {
-    enum LoggerConfigKey key;
-    char* name;
-};
-
-static const struct ConfigEntry configEntries[] = {
-    {LOGGER_FILE_PATH, "logFile"},
-    {LOG_LEVEL, "logLevel"}
-};
+static struct runTimeLoggerConfig runTimeConfig = {0};
 
 static enum LoggerConfigKey getKeyFromName(const char* name) {
     for (int i = 0; i < sizeof(configEntries) / sizeof(struct ConfigEntry); i++) {
@@ -60,9 +42,13 @@ static void addConfig(struct loggerConfig* config, enum LoggerConfigKey key, cha
     }
 }
 
-static struct loggerConfig readConfigInformation() {
+struct loggerConfig readConfigInformation(char* projectName) {
     struct loggerConfig loggerConfig = {0};
-    FILE* configFile = fopen( BINARY_ROOT "/configuration/logger.conf", "r");
+
+    char configFileString[2048];
+    snprintf(configFileString, sizeof(configFileString), "%s/configuration/%s/logger.conf", BINARY_ROOT, projectName);
+
+    FILE* configFile = fopen(configFileString , "r");
     if (configFile != NULL) {
         char configBuffer[512];
 
@@ -83,19 +69,47 @@ static struct loggerConfig readConfigInformation() {
     return loggerConfig;
 }
 
-static void startup() {
-    struct loggerConfig loggerConfig = readConfigInformation();
-    printf("Logger config file: %s\n", loggerConfig.filePath);
-    printf("Logger LogLevel: %d\n", loggerConfig.logLevel);
-}
 
+int setupLoger(char* projectName) {
+    struct loggerConfig loggerConfig = readConfigInformation(projectName);
+    runTimeConfig.logFile = fopen(loggerConfig.filePath, "a");
+    if (runTimeConfig.logFile == NULL) return -1;
 
+    runTimeConfig.logLevel = loggerConfig.logLevel;
+    runTimeConfig.messageCount = 0;
 
-int main(void) {
-    printf("Hello, World!\n");
-
-    startup();
-    logger_log(INFO, "hello world");
+    logger_log(INFO, "logger started with filepath %s", loggerConfig.filePath);
 
     return 0;
+}
+
+int closeLoger() {
+    fclose(runTimeConfig.logFile);
+    return 0;
+}
+
+void logger_log(enum LogLevel logLevel, const char* message, ...) {
+    if (logLevel >= runTimeConfig.logLevel) {
+        char messageBuffer[2048];
+
+        va_list args;
+        va_start(args, message);
+
+        vsnprintf(messageBuffer, sizeof(messageBuffer), message, args);
+
+        runTimeConfig.messageCount++;
+
+        time_t now = time(NULL);
+        struct tm timeInfo;
+        localtime_r(&now, &timeInfo);
+
+        char timestamp[32];
+        strftime(timestamp, sizeof(timestamp),"%Y-%m-%d %H:%M:%S", &timeInfo);
+    fprintf(runTimeConfig.logFile, "[%s] [%s] %s\n", timestamp, logMappings[logLevel].name, messageBuffer);
+    }
+
+    if (runTimeConfig.messageCount == 20) {
+        fflush(runTimeConfig.logFile);
+        runTimeConfig.messageCount = 0;
+    }
 }
