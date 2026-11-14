@@ -1,5 +1,8 @@
 #ifndef CHUNGO_LOGGER_H
+
 #define CHUNGO_LOGGER_H
+#define LOG(log_level, message, ...) logger_log(__FILE__, __LINE__, log_level, message, ##__VA_ARGS__)
+
 #include <stdio.h>
 
 enum LogLevel {
@@ -56,7 +59,7 @@ struct loggerConfig readConfigInformation();
 
 int setupLoger(char* projectName);
 
-void logger_log(enum LogLevel log_level, const char* message, ...);
-
+void logger_log(const char* file, int lineNumber, enum LogLevel log_level, const char* message, ...);
+void logCrash(const char* callStack, const char* file, int line, const char* message, ...);
 
 #endif //CHUNGO_LOGGER_H

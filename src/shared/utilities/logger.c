@@ -1,11 +1,11 @@
 #include "logger.h"
 
-#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include "configuration/paths.h"
 #include <stdarg.h>
+#include <stdlib.h>
 
 static struct runTimeLoggerConfig runTimeConfig = {0};
 
@@ -78,7 +78,9 @@ int setupLoger(char* projectName) {
     runTimeConfig.logLevel = loggerConfig.logLevel;
     runTimeConfig.messageCount = 0;
 
-    logger_log(INFO, "logger started with filepath %s", loggerConfig.filePath);
+    LOG(INFO, "logger started with filepath %s", loggerConfig.filePath);
+
+    logCrash("hello world", "myFile", 10, "message0");
 
     return 0;
 }
@@ -88,7 +90,7 @@ int closeLoger() {
     return 0;
 }
 
-void logger_log(enum LogLevel logLevel, const char* message, ...) {
+void logger_log(const char* filename, const int lineNumber, enum LogLevel logLevel, const char* message, ...) {
     if (logLevel >= runTimeConfig.logLevel) {
         char messageBuffer[2048];
 
@@ -105,11 +107,12 @@ void logger_log(enum LogLevel logLevel, const char* message, ...) {
 
         char timestamp[32];
         strftime(timestamp, sizeof(timestamp),"%Y-%m-%d %H:%M:%S", &timeInfo);
-    fprintf(runTimeConfig.logFile, "[%s] [%s] %s\n", timestamp, logMappings[logLevel].name, messageBuffer);
-    }
+        fprintf(runTimeConfig.logFile, "[%s] [%s] [%s] [%d] %s\n", timestamp, logMappings[logLevel].name, filename, lineNumber, messageBuffer);
+        va_end(args);
 
-    if (runTimeConfig.messageCount == 20) {
-        fflush(runTimeConfig.logFile);
-        runTimeConfig.messageCount = 0;
+        if (runTimeConfig.messageCount == 20) {
+            fflush(runTimeConfig.logFile);
+            runTimeConfig.messageCount = 0;
+        }
     }
 }

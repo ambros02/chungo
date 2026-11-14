@@ -28,11 +28,15 @@ target_include_directories(chungoServer PRIVATE
 target_sources(chungoClient
     PRIVATE
         src/client/main.c
+        src/client/communication/socket.c
 )
 
 target_sources(chungoServer
         PRIVATE
         src/server/main.c
+        src/server/communication/socket.c
+        src/server/communication/connectionQueue.h
+        src/server/communication/connectionQueue.c
 )
 
 target_link_libraries(chungoClient PRIVATE utilsLib)
