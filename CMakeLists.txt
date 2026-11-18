@@ -39,5 +39,13 @@ target_sources(chungoServer
         src/server/communication/connectionQueue.c
 )
 
+target_compile_options(chungoServer PRIVATE
+    "-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=./"
+)
+
+target_compile_options(chungoClient PRIVATE
+        "-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=./"
+)
+
 target_link_libraries(chungoClient PRIVATE utilsLib)
 target_link_libraries(chungoServer PRIVATE utilsLib)

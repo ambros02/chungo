@@ -80,8 +80,6 @@ int setupLoger(char* projectName) {
 
     LOG(INFO, "logger started with filepath %s", loggerConfig.filePath);
 
-    logCrash("hello world", "myFile", 10, "message0");
-
     return 0;
 }
 
