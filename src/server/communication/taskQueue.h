@@ -4,10 +4,10 @@
 
 #define QUEUE_SIZE 256
 
-struct ConnectionQueue {
+struct TaskQueue {
     int fileDescriptors[QUEUE_SIZE];
     int head;
-    int tail;
+    int insert;
     int count;
 
     pthread_mutex_t mutex;
@@ -15,5 +15,8 @@ struct ConnectionQueue {
     pthread_cond_t not_full;
 };
 
+int queue_init();
+void add_task(int client_socket);
+int take_task();
 
 #endif

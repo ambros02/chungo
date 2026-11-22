@@ -7,13 +7,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "connectionQueue.h"
+#include "taskQueue.h"
 #include "logger.h"
 
 static int serverSocket = -1;
 
 int openServerSocket() {
-
     serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
 
     if (serverSocket < 0) {
@@ -26,15 +25,25 @@ int openServerSocket() {
     server_address.sin_port = htons(37037);
     server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    bind(serverSocket, (struct sockaddr*) &server_address, sizeof(server_address));
+    const int success = bind(serverSocket, (struct sockaddr*) &server_address, sizeof(server_address));
+    if (success == -1)
+    {
+        LOG(FATAL, "Failed to bind connection listening socket");
+        return -1;
+    }
     listen(serverSocket, QUEUE_SIZE);
     return serverSocket;
 }
 
-int waitAndAcceptClients(struct ConnectionQueue queue) {
-    int client_socket = accept(serverSocket,NULL,NULL);
-    if (client_socket > 0) {
-
+int waitAndAcceptClients() {
+    while (1)
+    {
+        const int client_socket = accept(serverSocket,NULL,NULL);
+        if (client_socket == -1) {
+            LOG(ERROR, "Failed to accept client");
+            continue;
+        }
+        add_task(client_socket);
     }
 }
 
@@ -43,7 +52,7 @@ int closeClientSocket(int client_socket) {
     return 0;
 }
 
-int sendResponse(int client_socket, char* response) {
+int sendResponse(const int client_socket, const char* response) {
     send(client_socket, response, strlen(response), 0);
 }
 

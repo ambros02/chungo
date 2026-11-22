@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include "communication/socket.h"
-#include "communication/connectionQueue.h"
+#include "communication/taskQueue.h"
 
 static void startup() {
     int success = setupLoger("server");

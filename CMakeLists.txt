@@ -14,8 +14,12 @@ configure_file(configuration/client/logger.conf ${CMAKE_CURRENT_BINARY_DIR}/conf
 
 add_subdirectory(src/shared/utilities)
 
-add_executable(chungoClient)
-add_executable(chungoServer)
+add_executable(chungoClient
+        src/shared/protocol/Task.h)
+add_executable(chungoServer
+        src/server/communication/clientList.h
+        src/server/communication/clientList.c
+        src/shared/protocol/Task.h)
 
 target_include_directories(chungoClient PRIVATE
         ${CMAKE_CURRENT_BINARY_DIR}
@@ -35,8 +39,8 @@ target_sources(chungoServer
         PRIVATE
         src/server/main.c
         src/server/communication/socket.c
-        src/server/communication/connectionQueue.h
-        src/server/communication/connectionQueue.c
+        src/server/communication/taskQueue.h
+        src/server/communication/taskQueue.c
 )
 
 target_compile_options(chungoServer PRIVATE
